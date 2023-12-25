@@ -2,8 +2,7 @@ import streamlit as st
 import json
 from ibm_watson import NaturalLanguageUnderstandingV1
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
-from ibm_watson.natural_language_understanding_v1 \
-    import Features, CategoriesOptions
+from ibm_watson.natural_language_understanding_v1  import Features, CategoriesOptions
 import streamlit as st
 from ibm_watson import NaturalLanguageUnderstandingV1
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
@@ -19,47 +18,74 @@ nlu.set_service_url(url)
 # Streamlit app
 def main():
     st.title("Watson NLU API Interface")
-    text_input = st.text_area("Enter the text you want to analyze")
+    input_type = st.selectbox("Select input type", ["Text", "URL"])
 
-    if st.button("Analyze"):
-        if text_input:
-            st.write("Analyzing...")
-            features = {
-                "sentiment": {},
-                "categories": {},
-                "concepts": {},
-                "entities": {},
-                "keywords": {}
-            }
-            response = nlu.analyze(text=text_input, features=features).get_result()
+    if input_type == "Text":
+        text_input = st.text_area("Enter the text you want to analyze")
 
-            # Display analysis results
-            st.subheader("Sentiment")
-            sentiment = response["sentiment"]["document"]["label"]
-            st.write(f"Sentiment: {sentiment}")
+        if st.button("Analyze"):
+            if text_input:
+                analyze_text(text_input)
+            else:
+                st.warning("Please input some text to analyze.")
+    elif input_type == "URL":
+        url_input = st.text_input("Enter the URL you want to analyze")
 
-            st.subheader("Categories")
-            categories = response["categories"]
-            for category in categories:
-                label = category["label"]
-                st.write(f"- {label}")
+        if st.button("Analyze"):
+            if url_input:
+                analyze_url(url_input)
+            else:
+                st.warning("Please input a URL to analyze.")
 
-            st.subheader("Entities")
-            entities = response["entities"]
-            for entity in entities:
-                name = entity["text"]
-                entity_type = entity["type"]
-                st.write(f"- {name} ({entity_type})")
+def analyze_text(text):
+    st.write("Analyzing...")
+    features = {
+        "sentiment": {},
+        "categories": {},
+        "concepts": {},
+        "entities": {},
+        "keywords": {}
+    }
+    response = nlu.analyze(text=text, features=features).get_result()
+    display_results(response)
 
-            st.subheader("Keywords")
-            keywords = response["keywords"]
-            for keyword in keywords:
-                text = keyword["text"]
-                relevance = keyword["relevance"]
-                st.write(f"- {text} (Relevance: {relevance})")
+def analyze_url(url):
+    st.write("Analyzing...")
+    features = {
+        "sentiment": {},
+        "categories": {},
+        "concepts": {},
+        "entities": {},
+        "keywords": {}
+    }
+    response = nlu.analyze(url=url, features=features).get_result()
+    display_results(response)
 
-        else:
-            st.warning("Please input some text to analyze.")
+def display_results(response):
+    # Display analysis results
+    st.subheader("Sentiment")
+    sentiment = response["sentiment"]["document"]["label"]
+    st.write(f"Sentiment: {sentiment}")
+
+    st.subheader("Categories")
+    categories = response["categories"]
+    for category in categories:
+        label = category["label"]
+        st.write(f"- {label}")
+
+    st.subheader("Entities")
+    entities = response["entities"]
+    for entity in entities:
+        name = entity["text"]
+        entity_type = entity["type"]
+        st.write(f"- {name} ({entity_type})")
+
+    st.subheader("Keywords")
+    keywords = response["keywords"]
+    for keyword in keywords:
+        text = keyword["text"]
+        relevance = keyword["relevance"]
+        st.write(f"- {text} (Relevance: {relevance})")
 
 # Run the app
 if __name__ == "__main__":
